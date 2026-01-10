@@ -33,12 +33,30 @@ export async function updateSession(request: NextRequest) {
 
     const user = data?.claims
 
-    if (
-        !user &&
-        !request.nextUrl.pathname.startsWith('/login') &&
-        !request.nextUrl.pathname.startsWith('/auth')
-    ) {
-        // no user, potentially respond by redirecting the user to the login page
+    // Define public routes that don't require authentication
+    const publicRoutes = [
+        '/',
+        '/login',
+        '/auth',
+        '/browse',
+        '/books',
+        '/about',
+        '/contact',
+        '/forgot-password',
+        '/reset-password',
+        '/verify-email',
+        '/api/books',
+        '/api/search',
+        '/api/contact',
+    ]
+
+    const isPublicRoute = publicRoutes.some(route => 
+        request.nextUrl.pathname === route || 
+        request.nextUrl.pathname.startsWith(route + '/')
+    )
+
+    // Only redirect to login for protected routes when user is not authenticated
+    if (!user && !isPublicRoute) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
         return NextResponse.redirect(url)

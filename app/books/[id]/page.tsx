@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useCart } from '@/hooks/useCart'
 import { useAuth } from '@/hooks/useAuth'
+import { useWishlist } from '@/hooks/useWishlist'
 
 interface Seller {
     id: string
@@ -83,7 +84,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [selectedImage, setSelectedImage] = useState(0)
-    const [isWishlisted, setIsWishlisted] = useState(false)
+    const { isInWishlist, toggleWishlist } = useWishlist()
 
     // Cart state
     const [isAddingToCart, setIsAddingToCart] = useState(false)
@@ -391,10 +392,10 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                             <Button
                                 variant="outline"
                                 size="icon"
-                                onClick={() => setIsWishlisted(!isWishlisted)}
-                                className={isWishlisted ? 'text-red-600 border-red-200' : ''}
+                                onClick={() => book && toggleWishlist(book.id)}
+                                className={book && isInWishlist(book.id) ? 'text-red-600 border-red-200' : ''}
                             >
-                                <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-red-600' : ''}`} />
+                                <Heart className={`w-4 h-4 ${book && isInWishlist(book.id) ? 'fill-red-600' : ''}`} />
                             </Button>
                             <Button variant="outline" size="icon">
                                 <Share2 className="w-4 h-4" />

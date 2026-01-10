@@ -49,7 +49,8 @@ interface Book {
     created_at: string;
     seller: {
         id: string;
-        full_name: string | null;
+        first_name: string | null;
+        last_name: string | null;
         email: string | null;
     } | null;
 }
@@ -343,7 +344,7 @@ export default function AdminBooksPage() {
                                                         <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
                                                             <User className="w-4 h-4" />
                                                             <span>
-                                                                Seller: {seller?.full_name || 'Unknown'}
+                                                                Seller: {seller?.first_name} {seller?.last_name}
                                                                 {seller?.email && <span className="text-gray-400 ml-2">({seller.email})</span>}
                                                             </span>
                                                         </div>

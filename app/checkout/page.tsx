@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -35,11 +35,11 @@ export default function CheckoutPage() {
     const [successOrders, setSuccessOrders] = useState<string[]>([]);
 
     // Pre-fill phone from profile
-    useState(() => {
+    useEffect(() => {
         if (profile?.phone) {
             setBuyerPhone(profile.phone);
         }
-    });
+    }, [profile]);
 
     const handleCheckout = async () => {
         if (items.length === 0) return;

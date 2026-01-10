@@ -10,6 +10,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
+import { useWishlist } from "@/hooks/useWishlist";
 import { useRouter } from "next/navigation";
 
 interface Book {
@@ -35,13 +36,18 @@ export function BrowseBooksSection() {
   const router = useRouter();
   const { user } = useAuth();
   const { addToCart } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
   const [books, setBooks] = useState<Book[]>([]);
   const [reviewStats, setReviewStats] = useState<{ [key: string]: ReviewStats }>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [wishlist, setWishlist] = useState<string[]>([]);
-  const [currentFilters, setCurrentFilters] = useState<any>({});
+  const [currentFilters, setCurrentFilters] = useState<{
+    categories?: string[];
+    conditions?: string[];
+    priceRange?: [number, number];
+    sortBy?: string;
+  }>({});
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
   const [cartMessage, setCartMessage] = useState<{ id: string; message: string; success: boolean } | null>(null);
 
@@ -82,8 +88,8 @@ export function BrowseBooksSection() {
         }
         if (currentFilters.priceRange) {
           const [min, max] = currentFilters.priceRange;
-          params.append("minPrice", min);
-          params.append("maxPrice", max);
+          params.append("minPrice", String(min));
+          params.append("maxPrice", String(max));
         }
         if (currentFilters.sortBy) {
           params.append("sortBy", currentFilters.sortBy);
@@ -136,16 +142,21 @@ export function BrowseBooksSection() {
     setSearchQuery(query);
   };
 
-  const handleFiltersChange = (filters: any) => {
+  const handleFiltersChange = (filters: {
+    categories?: string[];
+    conditions?: string[];
+    priceRange?: [number, number];
+    sortBy?: string;
+  }) => {
     setCurrentFilters(filters);
   };
 
-  const toggleWishlist = (bookId: string) => {
-    setWishlist((prev) =>
-      prev.includes(bookId)
-        ? prev.filter((id) => id !== bookId)
-        : [...prev, bookId]
-    );
+  const handleToggleWishlist = async (bookId: string) => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    await toggleWishlist(bookId);
   };
 
   const getConditionColor = (c: string) => {
@@ -188,7 +199,7 @@ export function BrowseBooksSection() {
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">
                 {searchQuery ? (
                   <span>
-                    Results for <span className="text-[#C46A4A]">"{searchQuery}"</span>
+                    Results for <span className="text-[#C46A4A]">&ldquo;{searchQuery}&rdquo;</span>
                   </span>
                 ) : (
                   "Browse Books"
@@ -236,7 +247,7 @@ export function BrowseBooksSection() {
               No books found
             </h3>
             <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-md mx-auto">
-              Try adjusting your filters or search query to find what you're looking for
+              Try adjusting your filters or search query to find what you&apos;re looking for
             </p>
           </div>
         )}
@@ -274,12 +285,12 @@ export function BrowseBooksSection() {
                         size="icon"
                         onClick={(e) => {
                           e.preventDefault();
-                          toggleWishlist(book.id);
+                          handleToggleWishlist(book.id);
                         }}
                         className="absolute bottom-3 right-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-900 rounded-full w-10 h-10 shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300"
                       >
                         <Heart
-                          className={`w-5 h-5 transition-colors ${wishlist.includes(book.id) ? "fill-rose-500 text-rose-500" : "text-slate-700 dark:text-slate-300"}`}
+                          className={`w-5 h-5 transition-colors ${isInWishlist(book.id) ? "fill-rose-500 text-rose-500" : "text-slate-700 dark:text-slate-300"}`}
                         />
                       </Button>
                     </div>

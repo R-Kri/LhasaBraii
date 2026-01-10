@@ -7,7 +7,7 @@ import { Hero } from '@/components/Hero';
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-paper-warm">
       <Header />
       <main>
         <Hero />

@@ -129,21 +129,34 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
     if (!isOpen) return null
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="relative w-full max-w-md rounded-2xl shadow-2xl mx-4 max-h-[90vh] overflow-y-auto" style={{ backgroundColor: '#FAF7F2' }}>
-                {/* Close Button */}
+        <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            onClick={onClose}
+        >
+            <div 
+                className="relative w-full max-w-md rounded-2xl shadow-2xl mx-4 max-h-[90vh] overflow-y-auto" 
+                style={{ backgroundColor: '#FAF7F2' }}
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Close Button - positioned outside scroll area */}
                 <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 transition"
+                    onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        onClose()
+                    }}
+                    type="button"
+                    className="absolute top-4 right-4 z-50 w-8 h-8 flex items-center justify-center rounded-full bg-white hover:bg-gray-100 transition-colors shadow-md cursor-pointer"
                     style={{ color: '#C46A4A' }}
+                    aria-label="Close modal"
                 >
-                    <X size={24} />
+                    <X size={20} />
                 </button>
 
                 {/* Header */}
                 <div className="p-6 pb-4">
                     <h2 className="text-2xl font-bold text-center mb-6" style={{ color: '#8B5E3C' }}>
-                        {activeTab === 'login' ? 'Welcome Back' : 'Join BookMarket'}
+                        {activeTab === 'login' ? 'Welcome Back' : 'Join Lhasa'}
                     </h2>
 
                     {/* Tabs */}
@@ -188,7 +201,6 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                                         type="email"
                                         value={loginEmail}
                                         onChange={(e) => setLoginEmail(e.target.value)}
-                                        placeholder="your.email@university.edu"
                                         className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
                                         style={{ backgroundColor: '#FFFFFF', borderColor: '#E0E0E0', color: '#2B2B2B' }}
                                         required
@@ -231,9 +243,9 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                                     />
                                     <span className="text-sm" style={{ color: '#2B2B2B' }}>Remember me</span>
                                 </label>
-                                <button type="button" className="text-sm transition" style={{ color: '#C46A4A' }}>
+                                <a href="/forgot-password" className="text-sm transition hover:underline" style={{ color: '#C46A4A' }}>
                                     Forgot password?
-                                </button>
+                                </a>
                             </div>
 
                             <button
@@ -242,7 +254,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                                 className="w-full py-3 text-white rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
                                 style={{ backgroundColor: '#C46A4A' }}
                             >
-                                {loading ? 'Logging in...' : 'Login to BookMarket'}
+                                {loading ? 'Logging in...' : 'Login to Lhasa'}
                             </button>
 
                             <div className="relative my-6">
@@ -323,7 +335,6 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                                         type="email"
                                         value={signupEmail}
                                         onChange={(e) => setSignupEmail(e.target.value)}
-                                        placeholder="your.email@university.edu"
                                         className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
                                         style={{ backgroundColor: '#FFFFFF', borderColor: '#E0E0E0', color: '#2B2B2B' }}
                                         required
@@ -339,7 +350,6 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                                         type="tel"
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
-                                        placeholder="(555) 123-4567"
                                         className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
                                         style={{ backgroundColor: '#FFFFFF', borderColor: '#E0E0E0', color: '#2B2B2B' }}
                                     />
