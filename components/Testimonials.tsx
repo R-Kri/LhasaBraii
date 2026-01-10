@@ -6,77 +6,78 @@ import { ImageWithFallback } from "./figma/CustomImage";
 const testimonials = [
   {
     id: 1,
-    name: "Sarah Chen",
-    role: "Computer Science Student",
-    university: "MIT",
+    name: "Tashi Tsering",
+    role: "BA Student",
+    university: "Indira Gandhi Govt. College, Tezu",
     rating: 5,
     comment:
-      "Saved over $800 on textbooks this semester! The quality descriptions were spot-on.",
+      "Getting affordable books in Tezu was always difficult. This platform helped me find my semester books at almost half the price. Very useful for students like us.",
     image:
-      "https://images.unsplash.com/photo-1494790108755-2616b612b5ac?w=100&h=100&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=100&h=100&fit=crop&crop=face",
     verified: true,
   },
   {
     id: 2,
-    name: "Dr. Michael Roberts",
-    role: "History Professor",
-    university: "Stanford University",
+    name: "Dr. Romiso Kri",
+    role: "Lecturer",
+    university: "Government Higher Secondary School, Wakro",
     rating: 5,
     comment:
-      "Found several out-of-print titles at reasonable prices. Impressive collection.",
+      "I found reference books that are rarely available in local stores. The condition details were honest and the delivery was smooth.",
     image:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face",
     verified: true,
   },
   {
     id: 3,
-    name: "Emma Wilson",
-    role: "Book Lover",
-    university: "Local Reader",
+    name: "Mina Dihing",
+    role: "Avid Reader",
+    university: "Tezu",
     rating: 5,
     comment:
-      "Amazing fiction collection! Condition ratings are accurate and reliable.",
+      "I love reading novels but options here are limited. I was happy to find good-quality fiction books at reasonable prices.",
     image:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face",
     verified: true,
   },
   {
     id: 4,
-    name: "James Martinez",
-    role: "Medical Student",
-    university: "Johns Hopkins",
+    name: "Simulso Pul",
+    role: "BSc Student",
+    university: "RGU Affiliated College",
     rating: 5,
     comment:
-      "Sold old textbooks and bought new ones seamlessly. Huge money saver!",
+      "I sold my old textbooks easily and used the money to buy new ones. It really helped reduce my expenses this semester.",
     image:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
     verified: true,
   },
   {
     id: 5,
-    name: "Lisa Thompson",
-    role: "Working Professional",
-    university: "Self-learner",
+    name: "Anilu Tayang",
+    role: "Competitive Exam Aspirant",
+    university: "Self-study",
     rating: 5,
     comment:
-      "Great business and self-help selection. Highly recommend BookMarket.",
+      "Finding exam preparation books in Lohit is tough. This made it simple and affordable. Highly recommended for serious aspirants.",
     image:
       "https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=100&h=100&fit=crop&crop=face",
     verified: true,
   },
   {
     id: 6,
-    name: "Alex Kumar",
-    role: "Engineering Student",
-    university: "UC Berkeley",
+    name: "Bikash Roy",
+    role: "Diploma Student",
+    university: "ITI, Tezu",
     rating: 5,
     comment:
-      "ISBN search is fantastic. Found exactly what I needed instantly.",
+      "The search feature saved a lot of time. I quickly found the exact books I needed without running around different shops.",
     image:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=100&h=100&fit=crop&crop=face",
     verified: true,
   },
 ];
+
 
 export function Testimonials() {
   return (

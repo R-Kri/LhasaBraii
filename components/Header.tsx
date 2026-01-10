@@ -1,20 +1,22 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Search, ShoppingCart, User, Menu, LogOut, X, BookOpen } from 'lucide-react'
+import { Search, ShoppingCart, User, Menu, LogOut, X, BookOpen, Shield } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useAuth } from '@/hooks/useAuth'
+import { useCart } from '@/hooks/useCart'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 export function Header() {
+  const { summary: cartSummary } = useCart()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
-  const { user, loading } = useAuth()
+  const { user, loading, isAdmin } = useAuth()
   const router = useRouter()
 
   // Handle scroll effect
@@ -51,9 +53,8 @@ export function Header() {
   return (
     <>
       <header
-        className={`sticky top-0 z-50 transition-all duration-300 ${
-          scrolled ? 'shadow-xl backdrop-blur-lg' : 'shadow-md'
-        }`}
+        className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'shadow-xl backdrop-blur-lg' : 'shadow-md'
+          }`}
         style={{
           backgroundColor: scrolled ? 'rgba(95, 138, 139, 0.95)' : '#5F8A8B'
         }}
@@ -121,20 +122,24 @@ export function Header() {
             <div className="flex items-center space-x-2 sm:space-x-3 ml-4">
 
               {/* Cart Button with Badge */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative hidden sm:flex hover:bg-white/10 transition-all rounded-full group"
-                style={{ color: '#FAF7F2' }}
-              >
-                <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                <span
-                  className="absolute -top-1 -right-1 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-lg ring-2 ring-white/20"
-                  style={{ backgroundColor: '#C46A4A' }}
+              <Link href="/cart">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative hidden sm:flex hover:bg-white/10 transition-all rounded-full group"
+                  style={{ color: '#FAF7F2' }}
                 >
-                  2
-                </span>
-              </Button>
+                  <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  {cartSummary.itemCount > 0 && (
+                    <span
+                      className="absolute -top-1 -right-1 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-lg ring-2 ring-white/20"
+                      style={{ backgroundColor: '#C46A4A' }}
+                    >
+                      {cartSummary.itemCount > 9 ? '9+' : cartSummary.itemCount}
+                    </span>
+                  )}
+                </Button>
+              </Link>
 
               {/* Auth Section */}
               {loading ? (
@@ -143,7 +148,8 @@ export function Header() {
                 <div className="relative" ref={profileRef}>
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center text-white text-sm font-bold hover:shadow-xl transition-all hover:scale-105 ring-2 ring-white/20 hover:ring-white/40"
+                    type="button"
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center text-white text-sm font-bold hover:shadow-xl transition-all hover:scale-105 ring-2 ring-white/20 hover:ring-white/40 focus:outline-none focus:ring-2 focus:ring-white"
                     style={{ backgroundColor: '#8B5E3C' }}
                   >
                     {getInitials(user.email || 'U')}
@@ -152,10 +158,11 @@ export function Header() {
                   {/* Enhanced Profile Dropdown */}
                   {isProfileOpen && (
                     <div
-                      className="absolute right-0 mt-3 w-64 rounded-2xl shadow-2xl py-2 z-50 border backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-200"
+                      className="absolute right-0 mt-3 w-64 rounded-2xl shadow-2xl py-2 z-[9999] border backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-200"
                       style={{
                         backgroundColor: 'rgba(250, 247, 242, 0.98)',
-                        borderColor: 'rgba(95, 138, 139, 0.2)'
+                        borderColor: 'rgba(95, 138, 139, 0.2)',
+                        pointerEvents: 'auto'
                       }}
                     >
                       <div className="px-4 py-3 border-b" style={{ borderColor: 'rgba(95, 138, 139, 0.15)' }}>
@@ -187,6 +194,44 @@ export function Header() {
                           </div>
                           <span className="text-sm font-semibold">My Books</span>
                         </Link>
+
+                        <Link
+                          href="/orders"
+                          className="flex items-center px-4 py-3 hover:bg-gray-100/80 transition-colors group"
+                          style={{ color: '#2B2B2B' }}
+                          onClick={() => setIsProfileOpen(false)}
+                        >
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform" style={{ backgroundColor: '#C46A4A20' }}>
+                            <ShoppingCart className="w-4 h-4" style={{ color: '#C46A4A' }} />
+                          </div>
+                          <span className="text-sm font-semibold">My Orders</span>
+                        </Link>
+
+                        <Link
+                          href="/sales"
+                          className="flex items-center px-4 py-3 hover:bg-gray-100/80 transition-colors group"
+                          style={{ color: '#2B2B2B' }}
+                          onClick={() => setIsProfileOpen(false)}
+                        >
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform" style={{ backgroundColor: '#22C55E20' }}>
+                            <span className="text-sm" style={{ color: '#22C55E' }}>₹</span>
+                          </div>
+                          <span className="text-sm font-semibold">My Sales</span>
+                        </Link>
+
+                        {isAdmin && (
+                          <Link
+                            href="/admin"
+                            className="flex items-center px-4 py-3 hover:bg-gray-100/80 transition-colors group"
+                            style={{ color: '#2B2B2B' }}
+                            onClick={() => setIsProfileOpen(false)}
+                          >
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform" style={{ backgroundColor: '#EF444420' }}>
+                              <Shield className="w-4 h-4" style={{ color: '#EF4444' }} />
+                            </div>
+                            <span className="text-sm font-semibold">Admin Panel</span>
+                          </Link>
+                        )}
                       </div>
 
                       <div className="border-t pt-2" style={{ borderColor: 'rgba(95, 138, 139, 0.15)' }}>
@@ -241,7 +286,7 @@ export function Header() {
         </div>
 
         {/* Enhanced Curved Bottom Border with Gradient */}
-        <div className="absolute bottom-0 left-0 right-0 h-6 overflow-hidden">
+        <div className="absolute bottom-0 left-0 right-0 h-6 overflow-hidden pointer-events-none">
           <svg
             className="absolute bottom-0 w-full h-6"
             viewBox="0 0 1440 32"
@@ -303,7 +348,11 @@ export function Header() {
                   <ShoppingCart className="w-4 h-4 mr-3 group-hover:scale-110 transition-transform" />
                   Shopping Cart
                 </div>
-                <span className="px-2 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: '#C46A4A' }}>2</span>
+                {cartSummary.itemCount > 0 && (
+                  <span className="px-2 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: '#C46A4A' }}>
+                    {cartSummary.itemCount > 9 ? '9+' : cartSummary.itemCount}
+                  </span>
+                )}
               </Link>
             </nav>
           </div>

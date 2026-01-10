@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Filter, SlidersHorizontal, X } from "lucide-react";
+import { useState, useCallback, useMemo } from "react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
@@ -10,221 +10,360 @@ import { Slider } from "./ui/slider";
 import { Checkbox } from "./ui/checkbox";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 
+interface Filters {
+  categories: string[];
+  conditions: string[];
+  priceRange: [number, number];
+  sortBy: string;
+}
+
 interface SearchAndFilterProps {
   onSearchChange?: (query: string) => void;
-  onFiltersChange?: (filters: any) => void;
+  onFiltersChange?: (filters: Filters) => void;
 }
+
+const CATEGORIES = [
+  "Academic Textbooks",
+  "Fiction & Literature",
+  "Self-Help & Growth",
+  "Business & Economics",
+  "Science & Technology",
+  "Children's Books"
+] as const;
+
+const CONDITIONS = ["New", "Like New", "Very Good", "Good", "Fair"] as const;
+
+const SORT_OPTIONS = [
+  { value: "relevance", label: "Relevance" },
+  { value: "price-low", label: "Price: Low to High" },
+  { value: "price-high", label: "Price: High to Low" },
+  { value: "newest", label: "Newest First" },
+  { value: "rating", label: "Highest Rated" }
+] as const;
+
+const DEFAULT_PRICE_RANGE: [number, number] = [0, 300];
 
 export function SearchAndFilter({ onSearchChange, onFiltersChange }: SearchAndFilterProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [priceRange, setPriceRange] = useState([0, 300]);
+  const [priceRange, setPriceRange] = useState<[number, number]>(DEFAULT_PRICE_RANGE);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("relevance");
 
-  const categories = [
-    "Academic Textbooks",
-    "Fiction & Literature",
-    "Self-Help & Growth",
-    "Business & Economics",
-    "Science & Technology",
-    "Children's Books"
-  ];
-
-  const conditions = ["New", "Like New", "Very Good", "Good", "Fair"];
-
-  const handleSearchChange = (value: string) => {
+  const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
     onSearchChange?.(value);
-  };
+  }, [onSearchChange]);
 
-  const handleCategoryChange = (category: string, checked: boolean) => {
-    const newCategories = checked
-      ? [...selectedCategories, category]
-      : selectedCategories.filter(c => c !== category);
-    setSelectedCategories(newCategories);
+  const toggleCategory = useCallback((category: string) => {
+    setSelectedCategories(prev => {
+      const newCategories = prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category];
 
-    onFiltersChange?.({
-      categories: newCategories,
-      conditions: selectedConditions,
-      priceRange,
-      sortBy
+      // Notify after state update
+      setTimeout(() => {
+        onFiltersChange?.({
+          categories: newCategories,
+          conditions: selectedConditions,
+          priceRange,
+          sortBy
+        });
+      }, 0);
+
+      return newCategories;
     });
-  };
+  }, [selectedConditions, priceRange, sortBy, onFiltersChange]);
 
-  const handleConditionChange = (condition: string, checked: boolean) => {
-    const newConditions = checked
-      ? [...selectedConditions, condition]
-      : selectedConditions.filter(c => c !== condition);
-    setSelectedConditions(newConditions);
+  const toggleCondition = useCallback((condition: string) => {
+    setSelectedConditions(prev => {
+      const newConditions = prev.includes(condition)
+        ? prev.filter(c => c !== condition)
+        : [...prev, condition];
 
-    onFiltersChange?.({
-      categories: selectedCategories,
-      conditions: newConditions,
-      priceRange,
-      sortBy
+      // Notify after state update
+      setTimeout(() => {
+        onFiltersChange?.({
+          categories: selectedCategories,
+          conditions: newConditions,
+          priceRange,
+          sortBy
+        });
+      }, 0);
+
+      return newConditions;
     });
-  };
+  }, [selectedCategories, priceRange, sortBy, onFiltersChange]);
 
-  const clearFilters = () => {
+  const handlePriceChange = useCallback((value: number[]) => {
+    const newRange: [number, number] = [value[0], value[1]];
+    setPriceRange(newRange);
+
+    // Notify after state update
+    setTimeout(() => {
+      onFiltersChange?.({
+        categories: selectedCategories,
+        conditions: selectedConditions,
+        priceRange: newRange,
+        sortBy
+      });
+    }, 0);
+  }, [selectedCategories, selectedConditions, sortBy, onFiltersChange]);
+
+  const handleSortChange = useCallback((value: string) => {
+    setSortBy(value);
+
+    // Notify after state update
+    setTimeout(() => {
+      onFiltersChange?.({
+        categories: selectedCategories,
+        conditions: selectedConditions,
+        priceRange,
+        sortBy: value
+      });
+    }, 0);
+  }, [selectedCategories, selectedConditions, priceRange, onFiltersChange]);
+
+  const clearAllFilters = useCallback(() => {
     setSelectedCategories([]);
     setSelectedConditions([]);
-    setPriceRange([0, 300]);
+    setPriceRange(DEFAULT_PRICE_RANGE);
     setSortBy("relevance");
+
     onFiltersChange?.({
       categories: [],
       conditions: [],
-      priceRange: [0, 300],
+      priceRange: DEFAULT_PRICE_RANGE,
       sortBy: "relevance"
     });
-  };
+  }, [onFiltersChange]);
 
-  const activeFiltersCount = selectedCategories.length + selectedConditions.length +
-    (priceRange[0] > 0 || priceRange[1] < 300 ? 1 : 0);
+  const activeFiltersCount = useMemo(() => {
+    let count = selectedCategories.length + selectedConditions.length;
+    if (priceRange[0] > DEFAULT_PRICE_RANGE[0] || priceRange[1] < DEFAULT_PRICE_RANGE[1]) {
+      count += 1;
+    }
+    return count;
+  }, [selectedCategories.length, selectedConditions.length, priceRange]);
+
+  const FilterSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
+    <div className="space-y-4">
+      <h3 className="text-sm font-semibold tracking-wide text-slate-900 dark:text-slate-100 uppercase">
+        {title}
+      </h3>
+      {children}
+    </div>
+  );
 
   const FilterContent = () => (
-    <div className="space-y-6">
+    <div className="space-y-8 px-1">
       {/* Sort */}
-      <div>
-        <label className="font-medium mb-3 block">Sort By</label>
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger>
+      <FilterSection title="Sort By">
+        <Select value={sortBy} onValueChange={handleSortChange}>
+          <SelectTrigger className="w-full h-11 text-base border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-600">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="relevance">Relevance</SelectItem>
-            <SelectItem value="price-low">Price: Low to High</SelectItem>
-            <SelectItem value="price-high">Price: High to Low</SelectItem>
-            <SelectItem value="newest">Newest First</SelectItem>
-            <SelectItem value="rating">Highest Rated</SelectItem>
+          <SelectContent className="rounded-lg">
+            {SORT_OPTIONS.map(option => (
+              <SelectItem
+                key={option.value}
+                value={option.value}
+                className="text-base py-2.5 cursor-pointer"
+              >
+                {option.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
-      </div>
+      </FilterSection>
 
       {/* Price Range */}
-      <div>
-        <label className="font-medium mb-3 block">
-          Price Range: ${priceRange[0]} - ${priceRange[1]}
-        </label>
-        <Slider
-          value={priceRange}
-          onValueChange={setPriceRange}
-          max={300}
-          step={5}
-          className="w-full"
-        />
-      </div>
+      <FilterSection title={`Price: $${priceRange[0]} - $${priceRange[1]}`}>
+        <div className="px-1 pt-3 pb-1">
+          <Slider
+            value={priceRange}
+            onValueChange={handlePriceChange}
+            max={300}
+            step={5}
+            className="w-full"
+          />
+          <div className="flex justify-between mt-3 text-xs text-slate-500 dark:text-slate-400">
+            <span>$0</span>
+            <span>$300</span>
+          </div>
+        </div>
+      </FilterSection>
 
       {/* Categories */}
-      <div>
-        <label className="font-medium mb-3 block">Categories</label>
-        <div className="space-y-2">
-          {categories.map((category) => (
-            <div key={category} className="flex items-center space-x-2">
+      <FilterSection title="Categories">
+        <div className="space-y-3">
+          {CATEGORIES.map((category) => (
+            <label
+              key={category}
+              className="flex items-start space-x-3 cursor-pointer group py-0.5"
+            >
               <Checkbox
                 id={category}
                 checked={selectedCategories.includes(category)}
-                onCheckedChange={(checked) =>
-                  handleCategoryChange(category, checked as boolean)
-                }
+                onCheckedChange={() => toggleCategory(category)}
+                className="mt-0.5 h-5 w-5 rounded-md border-2 data-[state=checked]:bg-slate-900 data-[state=checked]:border-slate-900 dark:data-[state=checked]:bg-slate-100 dark:data-[state=checked]:border-slate-100"
               />
-              <label htmlFor={category} className="text-sm cursor-pointer">
+              <span className="text-[15px] leading-relaxed text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">
                 {category}
-              </label>
-            </div>
+              </span>
+            </label>
           ))}
         </div>
-      </div>
+      </FilterSection>
 
       {/* Condition */}
-      <div>
-        <label className="font-medium mb-3 block">Condition</label>
-        <div className="space-y-2">
-          {conditions.map((condition) => (
-            <div key={condition} className="flex items-center space-x-2">
+      <FilterSection title="Condition">
+        <div className="space-y-3">
+          {CONDITIONS.map((condition) => (
+            <label
+              key={condition}
+              className="flex items-center space-x-3 cursor-pointer group py-0.5"
+            >
               <Checkbox
                 id={condition}
                 checked={selectedConditions.includes(condition)}
-                onCheckedChange={(checked) =>
-                  handleConditionChange(condition, checked as boolean)
-                }
+                onCheckedChange={() => toggleCondition(condition)}
+                className="h-5 w-5 rounded-md border-2 data-[state=checked]:bg-slate-900 data-[state=checked]:border-slate-900 dark:data-[state=checked]:bg-slate-100 dark:data-[state=checked]:border-slate-100"
               />
-              <label htmlFor={condition} className="text-sm cursor-pointer">
+              <span className="text-[15px] text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">
                 {condition}
-              </label>
-            </div>
+              </span>
+            </label>
           ))}
         </div>
-      </div>
+      </FilterSection>
 
+      {/* Clear Filters */}
       {activeFiltersCount > 0 && (
-        <Button variant="outline" onClick={clearFilters} className="w-full">
-          Clear All Filters
-        </Button>
+        <div className="pt-2">
+          <Button
+            variant="outline"
+            onClick={clearAllFilters}
+            className="w-full h-11 rounded-lg border-2 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-600 transition-all text-base font-medium"
+          >
+            <X className="w-4 h-4 mr-2" />
+            Clear All Filters ({activeFiltersCount})
+          </Button>
+        </div>
       )}
     </div>
   );
 
+  const activeFilters = useMemo(() => [
+    ...selectedCategories.map(cat => ({ type: 'category', value: cat })),
+    ...selectedConditions.map(cond => ({ type: 'condition', value: cond }))
+  ], [selectedCategories, selectedConditions]);
+
   return (
-    <div className="bg-white border-b sticky top-16 z-40 py-4">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col sm:flex-row gap-4 items-center">
+    <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 shadow-sm">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
+        <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center">
           {/* Search Input */}
-          <div className="relative flex-1 w-full sm:w-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="Search by title, author, ISBN, or keyword..."
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="pl-10 pr-4"
-            />
+          <div className="relative flex flex-1 gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 w-5 h-5 pointer-events-none" />
+              <Input
+                placeholder="Search by title, author, ISBN..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearchChange(searchQuery);
+                  }
+                }}
+                className="pl-12 pr-10 h-11 sm:h-12 text-base bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-600 focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    handleSearchChange("");
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all"
+                  aria-label="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            <Button
+              onClick={() => handleSearchChange(searchQuery)}
+              className="h-11 sm:h-12 px-5 sm:px-6 rounded-xl bg-gradient-to-r from-[#C46A4A] to-[#A85738] hover:from-[#B05939] hover:to-[#8F4729] text-white font-semibold shadow-lg shadow-[#C46A4A]/30 transition-all"
+            >
+              <Search className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Search</span>
+            </Button>
           </div>
 
-          {/* Filter Toggle for Mobile */}
-          <div className="flex gap-2">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="relative">
-                  <SlidersHorizontal className="w-4 h-4 mr-2" />
-                  Filters
-                  {activeFiltersCount > 0 && (
-                    <Badge variant="destructive" className="ml-2 px-1 min-w-[20px] h-5">
-                      {activeFiltersCount}
-                    </Badge>
-                  )}
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-80">
-                <SheetHeader>
-                  <SheetTitle>Filter Books</SheetTitle>
-                </SheetHeader>
-                <div className="mt-6">
-                  <FilterContent />
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
+          {/* Filter Sheet Trigger */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                className="relative h-11 sm:h-12 px-5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 hover:border-slate-300 dark:hover:border-slate-600 transition-all text-base font-medium gap-2.5 min-w-[120px] sm:min-w-[140px]"
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                <span className="hidden sm:inline">Filters</span>
+                <span className="sm:hidden">Filter</span>
+                {activeFiltersCount > 0 && (
+                  <Badge
+                    variant="default"
+                    className="ml-1 px-2 h-6 text-xs font-semibold bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-full"
+                  >
+                    {activeFiltersCount}
+                  </Badge>
+                )}
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="right"
+              className="w-full sm:w-[420px] p-0 overflow-hidden flex flex-col border-l-2 border-slate-200 dark:border-slate-800"
+            >
+              <SheetHeader className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
+                <SheetTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                  Filter Books
+                </SheetTitle>
+                {activeFiltersCount > 0 && (
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                    {activeFiltersCount} {activeFiltersCount === 1 ? 'filter' : 'filters'} active
+                  </p>
+                )}
+              </SheetHeader>
+              <div className="flex-1 overflow-y-auto px-6 py-6">
+                <FilterContent />
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
 
-        {/* Active Filters */}
-        {(selectedCategories.length > 0 || selectedConditions.length > 0) && (
-          <div className="flex flex-wrap gap-2 mt-4">
-            {selectedCategories.map((category) => (
-              <Badge key={category} variant="secondary" className="flex items-center gap-1">
-                {category}
-                <X
-                  className="w-3 h-3 cursor-pointer"
-                  onClick={() => handleCategoryChange(category, false)}
-                />
-              </Badge>
-            ))}
-            {selectedConditions.map((condition) => (
-              <Badge key={condition} variant="secondary" className="flex items-center gap-1">
-                {condition}
-                <X
-                  className="w-3 h-3 cursor-pointer"
-                  onClick={() => handleConditionChange(condition, false)}
-                />
+        {/* Active Filters Pills */}
+        {activeFilters.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-4 animate-in fade-in-50 slide-in-from-top-2 duration-300">
+            {activeFilters.map((filter) => (
+              <Badge
+                key={`${filter.type}-${filter.value}`}
+                variant="secondary"
+                className="pl-3 pr-2 py-1.5 gap-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 text-sm font-medium"
+              >
+                <span>{filter.value}</span>
+                <button
+                  onClick={() => {
+                    if (filter.type === 'category') {
+                      toggleCategory(filter.value);
+                    } else {
+                      toggleCondition(filter.value);
+                    }
+                  }}
+                  className="rounded-full hover:bg-slate-300 dark:hover:bg-slate-600 p-0.5 transition-colors"
+                  aria-label={`Remove ${filter.value} filter`}
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
               </Badge>
             ))}
           </div>

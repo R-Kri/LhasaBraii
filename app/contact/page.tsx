@@ -50,14 +50,14 @@ export default function ContactPage() {
                             <div>
                                 <h4 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">Email</h4>
                                 <a href="mailto:info@lhasa.com" className="text-blue-600 hover:text-blue-700 break-all text-sm sm:text-base">
-                                    info@lhasa.com
+                                    code.dev108@gmail.com
                                 </a>
                             </div>
 
                             <div>
                                 <h4 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">Phone</h4>
                                 <a href="tel:+1234567890" className="text-blue-600 hover:text-blue-700 text-sm sm:text-base">
-                                    +1 (234) 567-890
+                                    +91 82599 06585
                                 </a>
                             </div>
 

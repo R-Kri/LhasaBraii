@@ -81,7 +81,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
         try {
             setLoading(true)
             setError('')
-            const { error } = await supabase.auth.signUp({
+            const { data, error } = await supabase.auth.signUp({
                 email: signupEmail,
                 password: password,
                 options: {
@@ -95,6 +95,28 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                 },
             })
             if (error) throw error
+
+            // Create initial user profile record with profile_completed = false
+            if (data.user) {
+                try {
+                    await supabase.from('user_profiles').upsert({
+                        id: data.user.id,
+                        email: signupEmail,
+                        first_name: firstName || null,
+                        last_name: lastName || null,
+                        phone: phone || null,
+                        bio: null,
+                        profile_image: null,
+                        profile_completed: false,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString(),
+                    })
+                } catch (profileError) {
+                    console.error('Profile creation error:', profileError)
+                    // Don't block signup if profile creation fails
+                }
+            }
+
             alert('Check your email to confirm your account!')
             onClose()
         } catch (err: any) {
@@ -168,7 +190,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                                         onChange={(e) => setLoginEmail(e.target.value)}
                                         placeholder="your.email@university.edu"
                                         className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
-                                        style={{ backgroundColor: '#FFFFFF', borderColor: '#E0E0E0', color: '#2B2B2B', focusRingColor: '#5F8A8B' }}
+                                        style={{ backgroundColor: '#FFFFFF', borderColor: '#E0E0E0', color: '#2B2B2B' }}
                                         required
                                     />
                                 </div>
@@ -274,7 +296,6 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                                             type="text"
                                             value={firstName}
                                             onChange={(e) => setFirstName(e.target.value)}
-                                            placeholder="John"
                                             className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
                                             style={{ backgroundColor: '#FFFFFF', borderColor: '#E0E0E0', color: '#2B2B2B' }}
                                             required
@@ -287,7 +308,6 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                                         type="text"
                                         value={lastName}
                                         onChange={(e) => setLastName(e.target.value)}
-                                        placeholder="Doe"
                                         className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
                                         style={{ backgroundColor: '#FFFFFF', borderColor: '#E0E0E0', color: '#2B2B2B' }}
                                         required
