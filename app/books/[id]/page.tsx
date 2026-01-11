@@ -7,13 +7,14 @@ import { Footer } from '@/components/Footer'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { Star, ShoppingCart, Heart, Share2, AlertCircle, Send, Loader2 } from 'lucide-react'
+import { Star, ShoppingCart, Heart, Share2, AlertCircle, Send, Loader2, MessageCircle } from 'lucide-react'
 import Image from 'next/image'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useCart } from '@/hooks/useCart'
 import { useAuth } from '@/hooks/useAuth'
 import { useWishlist } from '@/hooks/useWishlist'
+import ChatModal from '@/components/ChatModal'
 
 interface Seller {
     id: string
@@ -95,6 +96,9 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
     const [reviewComment, setReviewComment] = useState('')
     const [isSubmittingReview, setIsSubmittingReview] = useState(false)
     const [reviewMessage, setReviewMessage] = useState('')
+
+    // Chat state
+    const [isChatOpen, setIsChatOpen] = useState(false)
 
     const handleAddToCart = async () => {
         if (!user) {
@@ -411,16 +415,14 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                                 <h3 className="font-semibold mb-4">Seller Information</h3>
                                 <div className="flex items-center gap-4 mb-4 pb-4 border-b">
                                     <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
-                                        {book.seller.first_name?.charAt(0)}{book.seller.last_name?.charAt(0)}
+                                        {book.seller.first_name?.charAt(0) || book.seller.last_name?.charAt(0) || 'S'}
                                     </div>
                                     <div>
                                         <p className="font-semibold">
-                                            {book.seller.first_name} {book.seller.last_name}
+                                            {book.seller.first_name || book.seller.last_name 
+                                                ? `${book.seller.first_name || ''} ${book.seller.last_name || ''}`.trim()
+                                                : 'Seller'}
                                         </p>
-                                        <div className="flex items-center gap-1">
-                                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                            <span className="text-xs font-semibold">{book.seller.rating}</span>
-                                        </div>
                                     </div>
                                 </div>
 
@@ -437,8 +439,22 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                                     )}
                                 </div>
 
-                                <Button className="w-full mt-4 bg-blue-600 hover:bg-blue-700">
-                                    Contact Seller
+                                <Button 
+                                    className="w-full mt-4 bg-blue-600 hover:bg-blue-700"
+                                    onClick={() => {
+                                        if (!user) {
+                                            router.push('/login')
+                                            return
+                                        }
+                                        if (user.id === book.seller.id) {
+                                            return // Can't message yourself
+                                        }
+                                        setIsChatOpen(true)
+                                    }}
+                                    disabled={user?.id === book.seller.id}
+                                >
+                                    <MessageCircle className="w-4 h-4 mr-2" />
+                                    {user?.id === book.seller.id ? 'Your Listing' : 'Chat with Seller'}
                                 </Button>
                             </CardContent>
                         </Card>
@@ -578,6 +594,16 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                 </div>
             </main>
             <Footer />
+
+            {/* Chat Modal */}
+            {book && (
+                <ChatModal
+                    isOpen={isChatOpen}
+                    onClose={() => setIsChatOpen(false)}
+                    bookId={book.id}
+                    bookTitle={book.title}
+                />
+            )}
         </div>
     )
 }

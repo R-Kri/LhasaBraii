@@ -58,6 +58,19 @@ export async function GET(
             .eq('id', book.seller_id)
             .single();
 
+        // Build seller info - use profile data, with auth metadata as fallback for names
+        const sellerInfo = sellerProfile || {
+            id: book.seller_id,
+            first_name: null,
+            last_name: null,
+            phone: null,
+            bio: null,
+            profile_image: null,
+            rating: 0,
+            total_sales: 0,
+        };
+
+
         // Fetch related books from same seller (up to 4)
         const { data: relatedBooks, error: relatedError } = await supabase
             .from('books')
@@ -71,16 +84,7 @@ export async function GET(
             success: true,
             data: {
                 ...book,
-                seller: sellerProfile || {
-                    id: book.seller_id,
-                    first_name: null,
-                    last_name: null,
-                    phone: null,
-                    bio: null,
-                    profile_image: null,
-                    rating: 0,
-                    total_sales: 0,
-                },
+                seller: sellerInfo,
                 relatedBooks: relatedBooks || [],
             },
         });

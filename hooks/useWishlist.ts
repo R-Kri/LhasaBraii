@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from './useAuth';
 
 interface WishlistBook {
@@ -45,7 +45,7 @@ export function useWishlist() {
             } else {
                 setError(result.error);
             }
-        } catch (err) {
+        } catch {
             setError('Failed to fetch wishlist');
         } finally {
             setLoading(false);
@@ -56,7 +56,7 @@ export function useWishlist() {
         fetchWishlist();
     }, [fetchWishlist]);
 
-    const addToWishlist = async (bookId: string): Promise<boolean> => {
+    const addToWishlist = useCallback(async (bookId: string): Promise<boolean> => {
         if (!user) {
             setError('Please login to add to wishlist');
             return false;
@@ -79,13 +79,13 @@ export function useWishlist() {
                 setError(result.error);
                 return false;
             }
-        } catch (err) {
+        } catch {
             setError('Failed to add to wishlist');
             return false;
         }
-    };
+    }, [user, fetchWishlist]);
 
-    const removeFromWishlist = async (bookId: string): Promise<boolean> => {
+    const removeFromWishlist = useCallback(async (bookId: string): Promise<boolean> => {
         if (!user) return false;
 
         try {
@@ -107,25 +107,27 @@ export function useWishlist() {
                 setError(result.error);
                 return false;
             }
-        } catch (err) {
+        } catch {
             setError('Failed to remove from wishlist');
             return false;
         }
-    };
+    }, [user]);
 
-    const toggleWishlist = async (bookId: string): Promise<boolean> => {
+    const toggleWishlist = useCallback(async (bookId: string): Promise<boolean> => {
         if (wishlistIds.has(bookId)) {
             return removeFromWishlist(bookId);
         } else {
             return addToWishlist(bookId);
         }
-    };
+    }, [wishlistIds, removeFromWishlist, addToWishlist]);
 
-    const isInWishlist = (bookId: string): boolean => {
+    const isInWishlist = useCallback((bookId: string): boolean => {
         return wishlistIds.has(bookId);
-    };
+    }, [wishlistIds]);
 
-    return {
+    const count = useMemo(() => wishlist.length, [wishlist.length]);
+
+    return useMemo(() => ({
         wishlist,
         wishlistIds,
         loading,
@@ -135,6 +137,6 @@ export function useWishlist() {
         toggleWishlist,
         isInWishlist,
         refreshWishlist: fetchWishlist,
-        count: wishlist.length,
-    };
+        count,
+    }), [wishlist, wishlistIds, loading, error, addToWishlist, removeFromWishlist, toggleWishlist, isInWishlist, fetchWishlist, count]);
 }

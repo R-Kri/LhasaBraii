@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
-import { Search, ShoppingCart, User, Menu, LogOut, X, BookOpen, Shield, Heart, Loader2 } from 'lucide-react'
+import { useState, useRef, useEffect, useMemo } from 'react'
+import { Search, ShoppingCart, User, Menu, LogOut, X, BookOpen, Shield, Heart, Loader2, MessageCircle } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useAuth } from '@/hooks/useAuth'
@@ -58,40 +58,40 @@ export function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Search handler with debounce
-  const handleSearch = useCallback(async (query: string) => {
-    setSearchQuery(query)
-    if (query.length < 2) {
+  // Debounced search
+  useEffect(() => {
+    if (searchQuery.length < 2) {
       setSearchResults([])
       setShowSearchResults(false)
       return
     }
 
-    setIsSearching(true)
-    setShowSearchResults(true)
-
-    try {
-      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=5`)
-      const result = await response.json()
-      if (result.success) {
-        setSearchResults(result.data)
-      }
-    } catch (error) {
-      console.error('Search error:', error)
-    } finally {
-      setIsSearching(false)
-    }
-  }, [])
-
-  // Debounce search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchQuery) {
-        handleSearch(searchQuery)
+    const controller = new AbortController()
+    const timer = setTimeout(async () => {
+      setIsSearching(true)
+      setShowSearchResults(true)
+      try {
+        const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}&limit=5`, {
+          signal: controller.signal,
+        })
+        const result = await response.json()
+        if (result.success) {
+          setSearchResults(result.data)
+        }
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Search error:', error)
+        }
+      } finally {
+        setIsSearching(false)
       }
     }, 300)
-    return () => clearTimeout(timer)
-  }, [searchQuery, handleSearch])
+
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+    }
+  }, [searchQuery])
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -108,7 +108,7 @@ export function Header() {
     router.push('/')
   }
 
-  const getInitials = () => {
+  const getInitials = useMemo(() => {
     // Use name initials if available, otherwise fall back to email
     if (profile?.first_name || profile?.last_name) {
       const first = profile.first_name?.charAt(0) || ''
@@ -120,7 +120,7 @@ export function Header() {
       return user.email.split('@')[0].slice(0, 2).toUpperCase()
     }
     return 'U'
-  }
+  }, [profile?.first_name, profile?.last_name, user?.email])
 
   return (
     <>
@@ -293,7 +293,7 @@ export function Header() {
                     className="w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center text-white text-sm font-bold hover:shadow-xl transition-all hover:scale-105 ring-2 ring-white/20 hover:ring-white/40 focus:outline-none focus:ring-2 focus:ring-white"
                     style={{ backgroundColor: '#8B5E3C' }}
                   >
-                    {getInitials()}
+                    {getInitials}
                   </button>
 
                   {/* Enhanced Profile Dropdown */}
@@ -334,6 +334,18 @@ export function Header() {
                             <BookOpen className="w-4 h-4" style={{ color: '#8B5E3C' }} />
                           </div>
                           <span className="text-sm font-semibold">My Books</span>
+                        </Link>
+
+                        <Link
+                          href="/messages"
+                          className="flex items-center px-4 py-3 hover:bg-gray-100/80 transition-colors group"
+                          style={{ color: '#2B2B2B' }}
+                          onClick={() => setIsProfileOpen(false)}
+                        >
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center mr-3 group-hover:scale-110 transition-transform" style={{ backgroundColor: '#3B82F620' }}>
+                            <MessageCircle className="w-4 h-4" style={{ color: '#3B82F6' }} />
+                          </div>
+                          <span className="text-sm font-semibold">Messages</span>
                         </Link>
 
                         <Link

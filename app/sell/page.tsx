@@ -1,12 +1,13 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import SellYourBooks from '@/components/SellYourBooks'
 import { useRouter } from 'next/navigation'
 
-export default function SellPage() {
+function SellPageContent() {
     const { user, loading } = useAuth()
     const router = useRouter()
 
@@ -31,5 +32,23 @@ export default function SellPage() {
             </main>
             <Footer />
         </div>
+    )
+}
+
+export default function SellPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-50">
+                <Header />
+                <main className="w-full px-3 sm:px-4 py-8 sm:py-12 lg:py-20">
+                    <div className="flex items-center justify-center py-20">
+                        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        }>
+            <SellPageContent />
+        </Suspense>
     )
 }

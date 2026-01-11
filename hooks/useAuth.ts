@@ -37,6 +37,13 @@ export function useAuth() {
 
         const loadUserData = async (authUser: User) => {
             try {
+                // First, try to sync profile with auth metadata (for OAuth users without names)
+                try {
+                    await fetch('/api/users/sync-profile', { method: 'POST' })
+                } catch {
+                    // Ignore sync errors - not critical
+                }
+
                 // Fetch user profile from user_profiles
                 const { data: profileData, error: profileError } = await supabase
                     .from('user_profiles')

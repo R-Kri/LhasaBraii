@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 interface CartBook {
@@ -151,7 +151,7 @@ export function useCart(): UseCartReturn {
         await fetchCart();
     }, [fetchCart]);
 
-    return {
+    const memoizedReturn = useMemo(() => ({
         items,
         summary,
         loading,
@@ -161,7 +161,9 @@ export function useCart(): UseCartReturn {
         removeItem,
         clearCart,
         refreshCart,
-    };
+    }), [items, summary, loading, error, addToCart, updateQuantity, removeItem, clearCart, refreshCart]);
+
+    return memoizedReturn;
 }
 
 // Helper to get normalized book from cart item

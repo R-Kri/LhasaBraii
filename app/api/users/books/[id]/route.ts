@@ -4,9 +4,10 @@ import { NextResponse } from 'next/server';
 // DELETE a book by ID
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const supabase = await createClient();
 
         // Get authenticated user
@@ -21,7 +22,7 @@ export async function DELETE(
             );
         }
 
-        const bookId = params.id;
+        const bookId = id;
 
         // First, verify that the book belongs to the current user
         const { data: book, error: fetchError } = await supabase

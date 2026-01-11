@@ -81,7 +81,7 @@ export default function BookInfoStep({ bookData, onUpdate, validateISBN }: BookI
         </div>
 
         <div>
-          <label className="block mb-2 font-medium">Description (Optional)</label>
+          <label className="block mb-2 font-medium">Description *</label>
           <Textarea
             placeholder="Tell buyers more about your book - condition details, included materials, special features, etc."
             rows={4}
@@ -89,9 +89,10 @@ export default function BookInfoStep({ bookData, onUpdate, validateISBN }: BookI
             onChange={(e) => onUpdate({ description: e.target.value })}
             className="resize-none"
             maxLength={500}
+            required
           />
           <p className="text-xs text-gray-500 mt-1 text-right">
-            {(bookData.description || '').length}/500 characters
+            {(bookData.description || '').length}/500 characters (minimum 20)
           </p>
         </div>
       </div>

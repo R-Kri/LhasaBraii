@@ -87,7 +87,8 @@ export default function SellYourBooks() {
   const canProceed = useCallback(() => {
     if (step === 1) {
       const isISBNValid = !bookData.isbn || validateISBN(bookData.isbn);
-      return bookData.title && bookData.author && bookData.category && isISBNValid;
+      const hasDescription = bookData.description && bookData.description.trim().length >= 20;
+      return bookData.title && bookData.author && bookData.category && isISBNValid && hasDescription;
     }
     if (step === 2) return bookData.condition && bookData.price && parseFloat(bookData.price) > 0;
     if (step === 3) return bookData.images.length > 0;
@@ -139,6 +140,7 @@ export default function SellYourBooks() {
     setBookData(INITIAL_BOOK_DATA);
     setStep(1);
     setShowSuccess(false);
+    setIsSubmitting(false);
   }, []);
 
   if (isLoading) {

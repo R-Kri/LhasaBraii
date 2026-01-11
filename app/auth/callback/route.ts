@@ -27,15 +27,21 @@ export async function GET(request: NextRequest) {
                 // If profile doesn't exist, create it (for OAuth users)
                 if (!profile) {
                     try {
+                        // Extract name from Google OAuth - could be in full_name, name, or given_name/family_name
+                        const fullName = user.user_metadata?.full_name || user.user_metadata?.name || ''
+                        const nameParts = fullName.split(' ')
+                        const firstName = user.user_metadata?.given_name || user.user_metadata?.first_name || nameParts[0] || null
+                        const lastName = user.user_metadata?.family_name || user.user_metadata?.last_name || nameParts.slice(1).join(' ') || null
+                        
                         await supabase.from('user_profiles').insert({
                             id: user.id,
                             email: user.email || '',
-                            first_name: user.user_metadata?.first_name || null,
-                            last_name: user.user_metadata?.last_name || null,
+                            first_name: firstName,
+                            last_name: lastName,
                             phone: user.user_metadata?.phone || null,
                             bio: null,
-                            profile_image: null,
-                            profile_completed: false,
+                            profile_image: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+                            profile_completed: !!(firstName && lastName),
                             created_at: new Date().toISOString(),
                             updated_at: new Date().toISOString(),
                         })

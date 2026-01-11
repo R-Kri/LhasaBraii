@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { BookOpen, ArrowRight, Loader2, Sparkles, Heart } from 'lucide-react';
@@ -42,23 +42,25 @@ export function FeaturedBooks() {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const response = await fetch('/api/books?limit=8&status=approved');
-        const result = await response.json();
-        if (result.data) {
-          setBooks(result.data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch books:', error);
-      } finally {
-        setLoading(false);
+  const fetchBooks = useCallback(async () => {
+    try {
+      const response = await fetch('/api/books?limit=8&status=approved', {
+        next: { revalidate: 60 },
+      });
+      const result = await response.json();
+      if (result.data) {
+        setBooks(result.data);
       }
-    };
-
-    fetchBooks();
+    } catch (error) {
+      console.error('Failed to fetch books:', error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchBooks();
+  }, [fetchBooks]);
 
   if (loading) {
     return (
@@ -147,8 +149,11 @@ export function FeaturedBooks() {
                       src={book.images[0]}
                       alt={book.title}
                       fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      loading={index < 4 ? "eager" : "lazy"}
+                      placeholder="blur"
+                      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAUH/8QAIhAAAgEDBAMBAAAAAAAAAAAAAQIDAAQRBQYSITFBYXH/xAAVAQEBAAAAAAAAAAAAAAAAAAADBP/EABkRAAIDAQAAAAAAAAAAAAAAAAACAQMRIf/aAAwDAQACEQMRAD8AqXe7NUuLi4mt44o4JJGZEVyxVSfAJA7xXn3TqKKlk+h0kdn/2Q=="
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
@@ -157,7 +162,7 @@ export function FeaturedBooks() {
                   )}
                   
                   {/* Overlay gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                   
                   {/* Condition Badge */}
                   <Badge 

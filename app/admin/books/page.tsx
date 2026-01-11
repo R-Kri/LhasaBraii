@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -63,7 +63,7 @@ interface Counts {
     all: number;
 }
 
-export default function AdminBooksPage() {
+function AdminBooksContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { user, isAdmin, loading: authLoading } = useAuth();
@@ -462,5 +462,23 @@ export default function AdminBooksPage() {
                 </DialogContent>
             </Dialog>
         </div>
+    );
+}
+
+export default function AdminBooksPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-50">
+                <Header />
+                <main className="container mx-auto px-4 py-12">
+                    <div className="flex items-center justify-center py-20">
+                        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        }>
+            <AdminBooksContent />
+        </Suspense>
     );
 }

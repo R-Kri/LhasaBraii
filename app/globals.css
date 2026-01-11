@@ -212,11 +212,29 @@ html {
 
 .animate-float {
   animation: float 6s ease-in-out infinite;
+  will-change: transform;
 }
 
 .animate-float-delayed {
   animation: float-delayed 7s ease-in-out infinite;
   animation-delay: 1s;
+  will-change: transform;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-float-delayed,
+  .animate-shimmer,
+  .animate-spotlight,
+  .animate-scroll,
+  .animate-scroll-reverse,
+  .animate-sparkle,
+  .animate-pulse-glow,
+  .bento-item {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 .animate-shimmer {
@@ -225,9 +243,11 @@ html {
   animation: shimmer 2s infinite;
 }
 
-/* Smooth scroll behavior */
-html {
-  scroll-behavior: smooth;
+/* Smooth scroll behavior - respect user preference */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 /* Hide scrollbar for horizontal scroll sections on mobile */
@@ -281,13 +301,13 @@ html {
   --bg-color: #FDFBF7;
 }
 
-/* Card hover glow effect */
+/* Card hover glow effect - optimized */
 .card-glow {
-  transition: all 0.3s ease;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .card-glow:hover {
-  box-shadow: 0 0 40px rgba(196, 106, 74, 0.15), 0 0 80px rgba(95, 138, 139, 0.1);
+  box-shadow: 0 0 30px rgba(196, 106, 74, 0.12), 0 0 60px rgba(95, 138, 139, 0.08);
 }
 
 /* Bento grid item animations */
@@ -323,10 +343,20 @@ html {
 
 .animate-scroll {
   animation: scroll 30s linear infinite;
+  will-change: transform;
 }
 
 .animate-scroll-reverse {
   animation: scroll 30s linear infinite reverse;
+  will-change: transform;
+}
+
+/* Pause animations when not visible for performance */
+@media (prefers-reduced-motion: no-preference) {
+  .animate-scroll:not(:hover),
+  .animate-scroll-reverse:not(:hover) {
+    animation-play-state: running;
+  }
 }
 
 /* Glass morphism effect */
@@ -383,5 +413,21 @@ html {
 /* Dark section for contrast */
 .bg-dark-section {
   background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+}
+
+/* GPU acceleration for smooth animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimize images loading */
+img {
+  content-visibility: auto;
+}
+
+/* Reduce layout shifts */
+.aspect-3\/4 {
+  aspect-ratio: 3/4;
 }
 

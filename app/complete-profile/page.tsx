@@ -238,28 +238,18 @@ export default function CompleteProfilePage() {
                             />
                         </div>
 
-                        {/* Buttons */}
-                        <div className="flex gap-4">
-                            <Button
-                                type="submit"
-                                disabled={saving}
-                                className="flex-1 py-3 text-white font-semibold"
-                                style={{ backgroundColor: '#C46A4A' }}
-                            >
-                                {saving ? 'Saving...' : 'Complete Profile'}
-                            </Button>
-                            <Button
-                                type="button"
-                                onClick={() => router.push('/')}
-                                variant="outline"
-                                className="flex-1 py-3 font-semibold"
-                            >
-                                Skip for now
-                            </Button>
-                        </div>
+                        {/* Submit Button */}
+                        <Button
+                            type="submit"
+                            disabled={saving}
+                            className="w-full py-3 text-white font-semibold"
+                            style={{ backgroundColor: '#C46A4A' }}
+                        >
+                            {saving ? 'Saving...' : 'Complete Profile'}
+                        </Button>
 
                         <p className="text-sm text-gray-500 text-center">
-                            You can update this information anytime in your profile settings
+                            Your name is required to display seller information to buyers
                         </p>
                     </form>
                 </div>
