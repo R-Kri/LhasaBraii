@@ -1,377 +1,124 @@
-'use client';
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ArrowRight, BookOpen, Users, TrendingUp, Sparkles } from "lucide-react";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/hooks/useAuth';
-import {
-    BookOpen,
-    Users,
-    Clock,
-    CheckCircle,
-    XCircle,
-    ShoppingCart,
-    AlertCircle,
-    ArrowRight,
-    Shield,
-    TrendingUp,
-} from 'lucide-react';
-import Link from 'next/link';
+export function Hero() {
+  return (
+    <section className="relative bg-paper overflow-hidden">
+      {/* Spotlight Effect */}
+      <div 
+        className="pointer-events-none absolute inset-0 animate-spotlight"
+        style={{
+          background: `radial-gradient(ellipse 80% 50% at 50% -20%, rgba(196, 106, 74, 0.15), transparent 70%)`,
+        }}
+      />
+      
+      {/* Secondary ambient glow */}
+      <div 
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: `radial-gradient(ellipse 60% 40% at 80% 60%, rgba(95, 138, 139, 0.08), transparent 60%)`,
+        }}
+      />
 
-interface Stats {
-    books: {
-        pending: number;
-        approved: number;
-        rejected: number;
-        sold: number;
-        total: number;
-    };
-    users: number;
-    orders: {
-        initiated: number;
-        buyer_confirmed: number;
-        completed: number;
-        cancelled: number;
-        total: number;
-    };
-    recentActivity: Array<{
-        id: string;
-        action: string;
-        book_id: string;
-        notes: string | null;
-        created_at: string;
-        moderator: { full_name: string | null } | null;
-    }>;
-}
-
-export default function AdminDashboard() {
-    const router = useRouter();
-    const { user, isAdmin, loading: authLoading } = useAuth();
-    const [stats, setStats] = useState<Stats | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (authLoading) return;
-
-        if (!user) {
-            router.push('/login');
-            return;
-        }
-
-        if (!isAdmin) {
-            router.push('/');
-            return;
-        }
-
-        const fetchStats = async () => {
-            try {
-                const response = await fetch('/api/admin/stats');
-                const result = await response.json();
-
-                if (response.ok) {
-                    setStats(result.data);
-                } else {
-                    setError(result.error || 'Failed to fetch stats');
-                }
-            } catch (err) {
-                console.error('Fetch stats error:', err);
-                setError('Failed to load dashboard data');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchStats();
-    }, [user, isAdmin, authLoading, router]);
-
-    if (authLoading || loading) {
-        return (
-            <div className="min-h-screen bg-gray-50">
-                <Header />
-                <main className="container mx-auto px-4 py-12">
-                    <div className="flex items-center justify-center py-20">
-                        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-                    </div>
-                </main>
-                <Footer />
-            </div>
-        );
-    }
-
-    if (!isAdmin) {
-        return (
-            <div className="min-h-screen bg-gray-50">
-                <Header />
-                <main className="container mx-auto px-4 py-12">
-                    <Card className="max-w-md mx-auto border-red-200 bg-red-50">
-                        <CardContent className="pt-6 text-center">
-                            <Shield className="w-12 h-12 mx-auto text-red-500 mb-4" />
-                            <h2 className="text-xl font-semibold text-red-900 mb-2">Access Denied</h2>
-                            <p className="text-red-700">You do not have permission to access the admin panel.</p>
-                        </CardContent>
-                    </Card>
-                </main>
-                <Footer />
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="min-h-screen bg-gray-50">
-                <Header />
-                <main className="container mx-auto px-4 py-12">
-                    <Card className="max-w-md mx-auto border-red-200 bg-red-50">
-                        <CardContent className="pt-6 text-center">
-                            <AlertCircle className="w-12 h-12 mx-auto text-red-500 mb-4" />
-                            <h2 className="text-xl font-semibold text-red-900 mb-2">Error</h2>
-                            <p className="text-red-700">{error}</p>
-                        </CardContent>
-                    </Card>
-                </main>
-                <Footer />
-            </div>
-        );
-    }
-
-    const getActionBadge = (action: string) => {
-        switch (action) {
-            case 'approve_book':
-                return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
-            case 'reject_book':
-                return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
-            case 'delete_book':
-                return <Badge className="bg-gray-100 text-gray-800">Deleted</Badge>;
-            default:
-                return <Badge variant="secondary">{action}</Badge>;
-        }
-    };
-
-    return (
-        <div className="min-h-screen bg-gray-50">
-            <Header />
-            <main className="container mx-auto px-4 py-8 lg:py-12">
-                <div className="flex items-center gap-3 mb-8">
-                    <Shield className="w-8 h-8 text-blue-600" />
-                    <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-                </div>
-
-                {/* Quick Action */}
-                {stats && stats.books.pending > 0 && (
-                    <Card className="mb-8 border-yellow-300 bg-yellow-50">
-                        <CardContent className="pt-6">
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                                        <Clock className="w-6 h-6 text-yellow-600" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-lg font-semibold text-yellow-900">
-                                            {stats.books.pending} Books Pending Review
-                                        </h2>
-                                        <p className="text-sm text-yellow-700">
-                                            New book listings need your approval
-                                        </p>
-                                    </div>
-                                </div>
-                                <Link href="/admin/books?status=pending">
-                                    <Button className="bg-yellow-600 hover:bg-yellow-700">
-                                        Review Now
-                                        <ArrowRight className="w-4 h-4 ml-2" />
-                                    </Button>
-                                </Link>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
-
-                {/* Stats Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    <Card>
-                        <CardContent className="pt-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                                    <Clock className="w-5 h-5 text-yellow-600" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-500">Pending</p>
-                                    <p className="text-2xl font-bold">{stats?.books.pending || 0}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardContent className="pt-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                    <CheckCircle className="w-5 h-5 text-green-600" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-500">Approved</p>
-                                    <p className="text-2xl font-bold">{stats?.books.approved || 0}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardContent className="pt-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <Users className="w-5 h-5 text-blue-600" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-500">Users</p>
-                                    <p className="text-2xl font-bold">{stats?.users || 0}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardContent className="pt-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                    <TrendingUp className="w-5 h-5 text-purple-600" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-500">Total Sales</p>
-                                    <p className="text-2xl font-bold">{stats?.orders.completed || 0}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Quick Links */}
-                    <div className="lg:col-span-1">
-                        <Card>
-                            <CardContent className="pt-6">
-                                <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-                                <div className="space-y-2">
-                                    <Link href="/admin/books?status=pending">
-                                        <Button variant="outline" className="w-full justify-between">
-                                            <span className="flex items-center">
-                                                <Clock className="w-4 h-4 mr-2 text-yellow-600" />
-                                                Pending Books
-                                            </span>
-                                            <Badge className="bg-yellow-100 text-yellow-800">
-                                                {stats?.books.pending || 0}
-                                            </Badge>
-                                        </Button>
-                                    </Link>
-                                    <Link href="/admin/books?status=approved">
-                                        <Button variant="outline" className="w-full justify-between">
-                                            <span className="flex items-center">
-                                                <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
-                                                Approved Books
-                                            </span>
-                                            <Badge className="bg-green-100 text-green-800">
-                                                {stats?.books.approved || 0}
-                                            </Badge>
-                                        </Button>
-                                    </Link>
-                                    <Link href="/admin/books?status=rejected">
-                                        <Button variant="outline" className="w-full justify-between">
-                                            <span className="flex items-center">
-                                                <XCircle className="w-4 h-4 mr-2 text-red-600" />
-                                                Rejected Books
-                                            </span>
-                                            <Badge className="bg-red-100 text-red-800">
-                                                {stats?.books.rejected || 0}
-                                            </Badge>
-                                        </Button>
-                                    </Link>
-                                    <Link href="/admin/books?status=all">
-                                        <Button variant="outline" className="w-full justify-between">
-                                            <span className="flex items-center">
-                                                <BookOpen className="w-4 h-4 mr-2" />
-                                                All Books
-                                            </span>
-                                            <Badge variant="secondary">
-                                                {stats?.books.total || 0}
-                                            </Badge>
-                                        </Button>
-                                    </Link>
-                                </div>
-
-                                <div className="mt-6 pt-6 border-t">
-                                    <h3 className="font-medium mb-3">Orders Overview</h3>
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Active Orders</span>
-                                            <span className="font-medium">
-                                                {(stats?.orders.initiated || 0) + (stats?.orders.buyer_confirmed || 0)}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Completed</span>
-                                            <span className="font-medium text-green-600">{stats?.orders.completed || 0}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Cancelled</span>
-                                            <span className="font-medium text-red-600">{stats?.orders.cancelled || 0}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Recent Activity */}
-                    <div className="lg:col-span-2">
-                        <Card>
-                            <CardContent className="pt-6">
-                                <h2 className="text-lg font-semibold mb-4">Recent Moderation Activity</h2>
-                                {stats?.recentActivity && stats.recentActivity.length > 0 ? (
-                                    <div className="space-y-4">
-                                        {stats.recentActivity.map((log) => {
-                                            const moderator = Array.isArray(log.moderator) ? log.moderator[0] : log.moderator;
-                                            return (
-                                                <div key={log.id} className="flex items-start gap-3 pb-4 border-b last:border-0">
-                                                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-xs font-bold">
-                                                        {moderator?.full_name?.charAt(0) || 'A'}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2 flex-wrap">
-                                                            <span className="font-medium">
-                                                                {moderator?.full_name || 'Admin'}
-                                                            </span>
-                                                            {getActionBadge(log.action)}
-                                                        </div>
-                                                        {log.notes && (
-                                                            <p className="text-sm text-gray-600 mt-1">
-                                                                Notes: {log.notes}
-                                                            </p>
-                                                        )}
-                                                        <p className="text-xs text-gray-500 mt-1">
-                                                            {new Date(log.created_at).toLocaleString()}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-8 text-gray-500">
-                                        <ShoppingCart className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                                        <p>No moderation activity yet</p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-            </main>
-            <Footer />
+      {/* Floating 3D Book Illustration - Left */}
+      <div className="absolute left-[5%] top-1/4 hidden lg:block animate-float opacity-20">
+        <div className="w-32 h-40 bg-linear-to-br from-[#C46A4A] to-[#8B5E3C] rounded-lg shadow-2xl transform -rotate-12" style={{ perspective: '1000px', transformStyle: 'preserve-3d' }}>
+          <div className="absolute inset-2 bg-[#FAF7F2] rounded" />
+          <div className="absolute left-0 top-0 bottom-0 w-4 bg-linear-to-r from-[#A85A3A] to-[#C46A4A] rounded-l-lg" />
         </div>
-    );
+      </div>
+
+      {/* Floating 3D Book Illustration - Right */}
+      <div className="absolute right-[8%] top-1/3 hidden lg:block animate-float-delayed opacity-20">
+        <div className="w-28 h-36 bg-linear-to-br from-[#5F8A8B] to-[#4A7A7B] rounded-lg shadow-2xl transform rotate-12" style={{ perspective: '1000px', transformStyle: 'preserve-3d' }}>
+          <div className="absolute inset-2 bg-[#FAF7F2] rounded" />
+          <div className="absolute left-0 top-0 bottom-0 w-4 bg-linear-to-r from-[#4A7A7B] to-[#5F8A8B] rounded-l-lg" />
+        </div>
+      </div>
+
+      {/* Subtle texture overlay */}
+      <div className="absolute inset-0 opacity-[0.02]" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+      }} />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="pt-12 pb-12 sm:pt-16 sm:pb-16 lg:pt-20 lg:pb-20">
+          
+          {/* Main Content - Centered */}
+          <div className="text-center max-w-4xl mx-auto">
+            {/* Tagline with Sparkle effect */}
+            <div className="relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-linear-to-r from-[#C46A4A]/10 to-[#8B5E3C]/10 text-[#C46A4A] text-sm font-semibold mb-8 border border-[#C46A4A]/20">
+              <Sparkles className="w-4 h-4 animate-pulse" />
+              <span>Trusted Book Marketplace</span>
+              {/* Sparkle decorations */}
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#C46A4A] rounded-full animate-sparkle" />
+              <span className="absolute -bottom-1 -left-1 w-1.5 h-1.5 bg-[#5F8A8B] rounded-full animate-sparkle" style={{ animationDelay: '0.5s' }} />
+            </div>
+
+            {/* Main Heading with Serif Font */}
+            <h1 className="font-serif-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-gray-900 tracking-tight leading-[1.05]">
+              Buy & Sell Books
+              <span className="block mt-3 gradient-text">at Great Prices</span>
+            </h1>
+
+            {/* Description */}
+            <p className="mt-8 text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+              Connect with students and readers. Find quality textbooks, novels, and more at affordable prices.
+            </p>
+
+            {/* CTA Buttons - Enhanced */}
+            <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                asChild
+                size="lg"
+                className="group h-16 px-10 text-lg font-bold bg-linear-to-r from-[#C46A4A] to-[#A85A3A] hover:from-[#B55A3A] hover:to-[#8B4A2A] rounded-2xl shadow-xl shadow-[#C46A4A]/30 hover:shadow-2xl hover:shadow-[#C46A4A]/40 hover:scale-105 transition-all duration-300"
+              >
+                <Link href="/browse">
+                  Browse Books
+                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </Button>
+
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="h-16 px-10 text-lg font-bold border-2 border-gray-300 hover:border-[#C46A4A] hover:text-[#C46A4A] hover:bg-[#C46A4A]/5 rounded-2xl transition-all duration-300 hover:scale-105"
+              >
+                <Link href="/sell">Sell Your Books</Link>
+              </Button>
+            </div>
+
+            {/* Trust Indicators */}
+            <div className="mt-10 sm:mt-12">
+              <div className="grid grid-cols-3 gap-4 sm:gap-8 max-w-3xl mx-auto">
+                <div className="group text-center p-4 sm:p-6 rounded-2xl hover:bg-white/50 transition-all duration-300 card-glow">
+                  <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-linear-to-br from-emerald-400 to-emerald-600 text-white mb-4 shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform">
+                    <BookOpen className="w-7 h-7 sm:w-8 sm:h-8" />
+                  </div>
+                  <div className="text-3xl sm:text-4xl font-black text-gray-900 font-serif-display">100+</div>
+                  <div className="text-sm text-gray-500 font-medium mt-1">Books Listed</div>
+                </div>
+                <div className="group text-center p-4 sm:p-6 rounded-2xl hover:bg-white/50 transition-all duration-300 card-glow">
+                  <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-linear-to-br from-blue-400 to-blue-600 text-white mb-4 shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform">
+                    <Users className="w-7 h-7 sm:w-8 sm:h-8" />
+                  </div>
+                  <div className="text-3xl sm:text-4xl font-black text-gray-900 font-serif-display">50+</div>
+                  <div className="text-sm text-gray-500 font-medium mt-1">Active Users</div>
+                </div>
+                <div className="group text-center p-4 sm:p-6 rounded-2xl hover:bg-white/50 transition-all duration-300 card-glow">
+                  <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-linear-to-br from-amber-400 to-amber-600 text-white mb-4 shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform">
+                    <TrendingUp className="w-7 h-7 sm:w-8 sm:h-8" />
+                  </div>
+                  <div className="text-3xl sm:text-4xl font-black text-gray-900 font-serif-display">60%</div>
+                  <div className="text-sm text-gray-500 font-medium mt-1">Avg Savings</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }

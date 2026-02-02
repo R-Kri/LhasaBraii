@@ -254,7 +254,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                     <div className="lg:col-span-1">
                         <div className="sticky top-20">
                             {/* Main Image */}
-                            <div className="relative w-full bg-gray-100 rounded-lg overflow-hidden mb-4 aspect-[3/4]">
+                            <div className="relative w-full bg-gray-100 rounded-lg overflow-hidden mb-4 aspect-3/4">
                                 {book.images && book.images.length > 0 ? (
                                     <Image
                                         src={book.images[selectedImage]}

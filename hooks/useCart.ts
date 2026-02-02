@@ -35,7 +35,7 @@ interface UseCartReturn {
     addToCart: (bookId: string, quantity?: number) => Promise<{ success: boolean; message: string }>;
     updateQuantity: (cartItemId: string, quantity: number) => Promise<boolean>;
     removeItem: (cartItemId: string) => Promise<boolean>;
-    clearCart: () => void;
+    clearCart: () => Promise<boolean>;
     refreshCart: () => Promise<void>;
 }
 
@@ -141,9 +141,25 @@ export function useCart(): UseCartReturn {
         }
     }, [fetchCart]);
 
-    const clearCart = useCallback(() => {
-        setItems([]);
-        setSummary({ itemCount: 0, subtotal: 0, total: 0 });
+    const clearCart = useCallback(async (): Promise<boolean> => {
+        try {
+            const response = await fetch('/api/cart/clear', {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                setItems([]);
+                setSummary({ itemCount: 0, subtotal: 0, total: 0 });
+                return true;
+            }
+            return false;
+        } catch (err) {
+            console.error('Clear cart error:', err);
+            // Still clear local state even if server fails
+            setItems([]);
+            setSummary({ itemCount: 0, subtotal: 0, total: 0 });
+            return false;
+        }
     }, []);
 
     const refreshCart = useCallback(async () => {

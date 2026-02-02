@@ -47,6 +47,7 @@ export default function CheckoutPage() {
         setIsProcessing(true);
         setError(null);
         const createdOrders: string[] = [];
+        const failedOrders: string[] = [];
 
         try {
             // Create an order for each item in cart
@@ -54,37 +55,50 @@ export default function CheckoutPage() {
                 const book = getCartItemBook(item);
                 if (!book) continue;
 
-                const response = await fetch('/api/orders', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        book_id: book.id,
-                        buyer_phone: buyerPhone || null,
-                        notes: notes || null,
-                    }),
-                });
+                try {
+                    const response = await fetch('/api/orders', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            book_id: book.id,
+                            buyer_phone: buyerPhone || null,
+                            notes: notes || null,
+                        }),
+                    });
 
-                const result = await response.json();
+                    const result = await response.json();
 
-                if (response.ok) {
-                    createdOrders.push(result.data.id);
-                } else {
-                    // If it fails because order already exists, continue
-                    if (result.orderId) {
+                    if (response.ok) {
+                        createdOrders.push(result.data.id);
+                    } else if (result.orderId) {
+                        // Order already exists
                         createdOrders.push(result.orderId);
                     } else {
-                        throw new Error(result.error || 'Failed to create order');
+                        failedOrders.push(book.title);
                     }
+                } catch {
+                    failedOrders.push(book.title);
                 }
             }
 
-            setSuccessOrders(createdOrders);
-            clearCart();
+            // If at least some orders were created, consider it a success
+            if (createdOrders.length > 0) {
+                setSuccessOrders(createdOrders);
+                await clearCart();
 
-            // Redirect to orders page after short delay
-            setTimeout(() => {
-                router.push('/orders');
-            }, 2000);
+                // Show partial success message if some failed
+                if (failedOrders.length > 0) {
+                    setError(`Some orders could not be created: ${failedOrders.join(', ')}`);
+                }
+
+                // Redirect to orders page after short delay
+                setTimeout(() => {
+                    router.push('/orders');
+                }, 2500);
+            } else {
+                // All orders failed
+                setError('Failed to create any orders. Please try again.');
+            }
         } catch (err) {
             console.error('Checkout error:', err);
             setError(err instanceof Error ? err.message : 'Failed to process checkout');

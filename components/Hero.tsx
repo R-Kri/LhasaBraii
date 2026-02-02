@@ -6,15 +6,15 @@ export function Hero() {
   return (
     <section className="relative bg-paper overflow-hidden">
       {/* Spotlight Effect */}
-      <div 
+      <div
         className="pointer-events-none absolute inset-0 animate-spotlight"
         style={{
           background: `radial-gradient(ellipse 80% 50% at 50% -20%, rgba(196, 106, 74, 0.15), transparent 70%)`,
         }}
       />
-      
+
       {/* Secondary ambient glow */}
-      <div 
+      <div
         className="pointer-events-none absolute inset-0"
         style={{
           background: `radial-gradient(ellipse 60% 40% at 80% 60%, rgba(95, 138, 139, 0.08), transparent 60%)`,
@@ -44,20 +44,28 @@ export function Hero() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="pt-12 pb-12 sm:pt-16 sm:pb-16 lg:pt-20 lg:pb-20">
-          
+
           {/* Main Content - Centered */}
           <div className="text-center max-w-4xl mx-auto">
             {/* Tagline with Sparkle effect */}
-            <div className="relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-linear-to-r from-[#C46A4A]/10 to-[#8B5E3C]/10 text-[#C46A4A] text-sm font-semibold mb-8 border border-[#C46A4A]/20">
-              <Sparkles className="w-4 h-4 animate-pulse" />
+            <div className="relative inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-linear-to-r from-[#C46A4A]/10 to-[#8B5E3C]/10 text-[#C46A4A] text-xs font-medium mb-6 border border-[#C46A4A]/20">
+
+              <Sparkles className="w-2.5 h-2.5 animate-pulse" />
               <span>Trusted Book Marketplace</span>
-              {/* Sparkle decorations */}
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#C46A4A] rounded-full animate-sparkle" />
-              <span className="absolute -bottom-1 -left-1 w-1.5 h-1.5 bg-[#5F8A8B] rounded-full animate-sparkle" style={{ animationDelay: '0.5s' }} />
+
+              {/* Tiny sparkles */}
+              <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-[#C46A4A] rounded-full animate-sparkle" />
+              <span
+                className="absolute -bottom-0.5 -left-0.5 w-1 h-1 bg-[#5F8A8B] rounded-full animate-sparkle"
+                style={{ animationDelay: "0.5s" }}
+              />
             </div>
 
-            {/* Main Heading with Serif Font */}
-            <h1 className="font-serif-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-gray-900 tracking-tight leading-[1.05]">
+            {/* ⭐ UPDATED MAIN HEADING WITH COMPANY NAME ⭐ */}
+            <h1 className="font-serif-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight leading-[1.05] bg-gradient-to-r from-[#C46A4A] via-[#A85A3A] to-[#5F8A8B] bg-clip-text text-transparent drop-shadow-sm">
+              LHASA
+            </h1>
+            <h1 className="font-serif-display text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 tracking-tight leading-[1.05]">
               Buy & Sell Books
               <span className="block mt-3 gradient-text">at Great Prices</span>
             </h1>
@@ -67,7 +75,7 @@ export function Hero() {
               Connect with students and readers. Find quality textbooks, novels, and more at affordable prices.
             </p>
 
-            {/* CTA Buttons - Enhanced */}
+            {/* CTA Buttons */}
             <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 asChild
@@ -100,6 +108,7 @@ export function Hero() {
                   <div className="text-3xl sm:text-4xl font-black text-gray-900 font-serif-display">100+</div>
                   <div className="text-sm text-gray-500 font-medium mt-1">Books Listed</div>
                 </div>
+
                 <div className="group text-center p-4 sm:p-6 rounded-2xl hover:bg-white/50 transition-all duration-300 card-glow">
                   <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-linear-to-br from-blue-400 to-blue-600 text-white mb-4 shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform">
                     <Users className="w-7 h-7 sm:w-8 sm:h-8" />
@@ -107,6 +116,7 @@ export function Hero() {
                   <div className="text-3xl sm:text-4xl font-black text-gray-900 font-serif-display">50+</div>
                   <div className="text-sm text-gray-500 font-medium mt-1">Active Users</div>
                 </div>
+
                 <div className="group text-center p-4 sm:p-6 rounded-2xl hover:bg-white/50 transition-all duration-300 card-glow">
                   <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-linear-to-br from-amber-400 to-amber-600 text-white mb-4 shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform">
                     <TrendingUp className="w-7 h-7 sm:w-8 sm:h-8" />
@@ -116,6 +126,7 @@ export function Hero() {
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>

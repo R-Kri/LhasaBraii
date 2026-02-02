@@ -196,15 +196,13 @@ export function BrowseBooksSection() {
         <div className="mb-8">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-                {searchQuery ? (
+              {searchQuery && (
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">
                   <span>
                     Results for <span className="text-[#C46A4A]">&ldquo;{searchQuery}&rdquo;</span>
                   </span>
-                ) : (
-                  "Browse Books"
-                )}
-              </h2>
+                </h2>
+              )}
               <p className="text-base text-slate-600 dark:text-slate-400">
                 {isLoading ? "Loading..." : `Found ${books.length} book${books.length !== 1 ? "s" : ""}`}
               </p>

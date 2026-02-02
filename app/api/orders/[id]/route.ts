@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
 
 // GET - Fetch single order details
@@ -36,6 +37,7 @@ export async function GET(
                 updated_at,
                 buyer_id,
                 seller_id,
+                book_id,
                 book:books (
                     id,
                     title,
@@ -44,20 +46,6 @@ export async function GET(
                     condition,
                     description,
                     isbn
-                ),
-                buyer:user_profiles!orders_buyer_id_fkey (
-                    id,
-                    first_name,
-                    last_name,
-                    phone,
-                    email
-                ),
-                seller:user_profiles!orders_seller_id_fkey (
-                    id,
-                    first_name,
-                    last_name,
-                    phone,
-                    email
                 )
             `)
             .eq('id', id)
@@ -78,12 +66,49 @@ export async function GET(
             );
         }
 
+        // Fetch buyer and seller profiles using admin client (bypasses RLS)
+        const userIds = [order.buyer_id, order.seller_id].filter(Boolean);
+        const adminClient = createAdminClient();
+        let profiles: { id: string; first_name: string | null; last_name: string | null; phone: string | null; email: string | null; }[] | null = null;
+        
+        if (adminClient) {
+            const { data } = await adminClient
+                .from('user_profiles')
+                .select('id, first_name, last_name, phone, email')
+                .in('id', userIds);
+            profiles = data;
+        } else {
+            // Fallback: try with regular client
+            const { data } = await supabase
+                .from('user_profiles')
+                .select('id, first_name, last_name, phone, email')
+                .in('id', userIds);
+            profiles = data;
+        }
+
+        const profileMap = new Map<string, {
+            id: string;
+            first_name: string | null;
+            last_name: string | null;
+            phone: string | null;
+            email: string | null;
+        }>();
+        profiles?.forEach(profile => {
+            profileMap.set(profile.id, profile);
+        });
+
+        const orderWithProfiles = {
+            ...order,
+            buyer: profileMap.get(order.buyer_id) || null,
+            seller: profileMap.get(order.seller_id) || null,
+        };
+
         // Determine user's role in this order
         const userRole = order.buyer_id === user.id ? 'buyer' : 'seller';
 
         return NextResponse.json({
             success: true,
-            data: order,
+            data: orderWithProfiles,
             userRole,
         });
     } catch (error) {

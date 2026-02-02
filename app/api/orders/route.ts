@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
 
 // GET - Fetch user's orders (as buyer or seller)
@@ -24,6 +25,9 @@ export async function GET(request: Request) {
             .from('orders')
             .select(`
                 id,
+                buyer_id,
+                seller_id,
+                book_id,
                 status,
                 price,
                 buyer_phone,
@@ -39,20 +43,6 @@ export async function GET(request: Request) {
                     author,
                     images,
                     condition
-                ),
-                buyer:user_profiles!orders_buyer_id_fkey (
-                    id,
-                    first_name,
-                    last_name,
-                    phone,
-                    email
-                ),
-                seller:user_profiles!orders_seller_id_fkey (
-                    id,
-                    first_name,
-                    last_name,
-                    phone,
-                    email
                 )
             `)
             .order('created_at', { ascending: false });
@@ -77,6 +67,59 @@ export async function GET(request: Request) {
                 { error: 'Failed to fetch orders', details: error.message },
                 { status: 500 }
             );
+        }
+
+        // Fetch user profiles for all orders
+        if (orders && orders.length > 0) {
+            // Get unique user IDs (both buyers and sellers)
+            const userIds = new Set<string>();
+            orders.forEach(order => {
+                if (order.buyer_id) userIds.add(order.buyer_id);
+                if (order.seller_id) userIds.add(order.seller_id);
+            });
+
+            // Fetch all user profiles using admin client (bypasses RLS)
+            const adminClient = createAdminClient();
+            let profiles: { id: string; first_name: string | null; last_name: string | null; phone: string | null; email: string | null; }[] | null = null;
+            
+            if (adminClient) {
+                const { data } = await adminClient
+                    .from('user_profiles')
+                    .select('id, first_name, last_name, phone, email')
+                    .in('id', Array.from(userIds));
+                profiles = data;
+            } else {
+                // Fallback: try with regular client (may be limited by RLS)
+                const { data } = await supabase
+                    .from('user_profiles')
+                    .select('id, first_name, last_name, phone, email')
+                    .in('id', Array.from(userIds));
+                profiles = data;
+            }
+
+            // Create a map for quick lookup
+            const profileMap = new Map<string, {
+                id: string;
+                first_name: string | null;
+                last_name: string | null;
+                phone: string | null;
+                email: string | null;
+            }>();
+            profiles?.forEach(profile => {
+                profileMap.set(profile.id, profile);
+            });
+
+            // Attach profiles to orders
+            const ordersWithProfiles = orders.map(order => ({
+                ...order,
+                buyer: profileMap.get(order.buyer_id) || null,
+                seller: profileMap.get(order.seller_id) || null,
+            }));
+
+            return NextResponse.json({
+                success: true,
+                data: ordersWithProfiles,
+            });
         }
 
         return NextResponse.json({
