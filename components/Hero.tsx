@@ -99,7 +99,7 @@ export function Hero() {
             </div>
 
             {/* Trust Indicators */}
-            <div className="mt-10 sm:mt-12">
+            <div className="mt-6 sm:mt-8">
               <div className="grid grid-cols-3 gap-4 sm:gap-8 max-w-3xl mx-auto">
                 <div className="group text-center p-4 sm:p-6 rounded-2xl hover:bg-white/50 transition-all duration-300 card-glow">
                   <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-linear-to-br from-emerald-400 to-emerald-600 text-white mb-4 shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform">
